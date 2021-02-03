@@ -1,0 +1,6 @@
+# intellij
+.idea
+# cache files
+*.pyc
+# generated files
+results/
