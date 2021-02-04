@@ -106,9 +106,12 @@ def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_j
     return row_join.join(map(cell_join.join, table))
 
 
-def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats=None, legend_on=True, fig_path=None):
+def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats=None, legend_on=True, fig_path=None,
+                     title=None):
     plt.rcParams["figure.figsize"] = (6, 3)
     fig = plt.figure()
+    if title is not None:
+        fig.suptitle(title)
     fig.subplots_adjust(
         left=0.15, bottom=0.20, right=.98, top=0.83,
         wspace=0.12, hspace=0.05)
