@@ -19,6 +19,7 @@ def datafile_path(_experiment_name, _scenario_set_name, _trial_tag):
 def stat_cell_format(stats, iteration):
     return "{:.2f}({:.2f})".format(stats["mean"][iteration], stats["std"][iteration])
 
+
 def scenario_into_filename(scenario_string):
     return scenario_string.replace(' ', '').replace('[','').replace('],', 'a').replace(']', '').\
         replace('{','T').replace('}','').replace(',','').replace(':','x')
@@ -28,9 +29,9 @@ def scenario_into_filename(scenario_string):
 if __name__ == '__main__':
 
     # Experiment setup
-    trial_tags = [0]
-    experiment_name = "test1"
-    scout_subset = 100
+    trial_tags = [0,1,2,3]
+    experiment_name = "exp1"
+    scout_subset = 1000
     # scenario_set_name = SS_MNIST012
     scenario_set_name = SS_MNIST_CN5
     mode = []
@@ -44,7 +45,9 @@ if __name__ == '__main__':
     predictor_builders = [
         models.basic_predictor_interfaces.LinearClassifierPredictor,
         models.basic_predictor_interfaces.PerceptronClassifierPredictor,
-        models.ensgendel_interface.Ensgendel
+        models.ensgendel_interface.Ensgendel,
+        models.ensgendel_interface.Ensgen,
+        models.ensgendel_interface.Ens,
     ]
 
     # scenario sets implementing the incremental_evaluation.interfaces.ScenarioSet
@@ -128,6 +131,18 @@ if __name__ == '__main__':
         scenarios = list(eval_stats_total[list(eval_stats_total.keys())[0]].keys())
         print(scenarios)
         for i, scenario in enumerate(scenarios):
-            fig_path = os.path.join(RESULTS, "{}_{}_{}_accuracy.pdf".format(experiment_name, scenario_set_name, scenario_into_filename(scenario)))
-            VH.show_metric_evol(eval_stats_total, scenario, classifier_style, legend_on=(i == 0), fig_path=fig_path)
+            # picking subclass for tracking
+            scenario_obj = eval(scenario)
+            tracked_label = list(scenario_obj[0].keys())[0]
+            tracked_subclass = scenario_obj[0][tracked_label][-1]
+
+            def tracked_evaluation(_scen, _pred, _subs): # lambda for tracking
+                return IE.evaluate_selected_subclass_accuracy(_scen, _pred, _subs, tracked_subclass, tracked_label)
+            eval_stats_tracked = DFH.extract_stats_for_portfolio(
+                portfolio, over_testing_set=True, task_accuracy_type=None, evaluator=tracked_evaluation)
+            # visualisaiton
+            fig_path = os.path.join(RESULTS, "{}_{}_{}_accuracy.pdf".format(experiment_name, scenario_set_name,
+                                                                            scenario_into_filename(scenario)))
+            VH.show_metric_evol(eval_stats_total, scenario, classifier_style,
+                                fig_path=fig_path, selected_eval_stats=eval_stats_tracked, title=scenario)
             print("fig of scenario {} saved into {}".format(scenario, fig_path))

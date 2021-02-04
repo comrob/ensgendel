@@ -1,11 +1,11 @@
 import incremental_evaluation.interfaces as I
-from models.classifier_builders import adevae
+from models.classifier_builders import adevae, aevae, evae
 import models.ensgendel.samples_provider as SP
 import numpy as np
 
 
 class Ensgendel(I.Predictor):
-    def __init__(self, classes, max_epoch=2, gpu_on=False):
+    def __init__(self, classes, max_epoch=20, gpu_on=False):
         super().__init__(classes)
         self._max_epoch = max_epoch
         self._class_num = len(classes)
@@ -16,8 +16,8 @@ class Ensgendel(I.Predictor):
         self._predictor_args["max_epoch"] = max_epoch
         self._predictor_args["min_updates"] = 0
         self._predictor_args["learning_rate"] = 0.001
-
         self._is_first_fit = True
+        self._builder = adevae
 
     def _before_first_fit(self, X, y):
         self._is_first_fit = False
@@ -25,7 +25,7 @@ class Ensgendel(I.Predictor):
         self._predictor_args["feat_size"] = X.shape[1]
         if self._predictor_args["feat_size"] > 3:
             # tuned for MNIST input
-            max_updates = 10
+            max_updates = 100
             hidden_size = 500
             latent_size = 8
             threshold = 0.1
@@ -91,3 +91,15 @@ class Ensgendel(I.Predictor):
     def predict(self, X):
         res = self._predictor.predict(X.astype(dtype=np.float32))
         return res.reshape((-1,))
+
+
+class Ensgen(Ensgendel):
+    def __init__(self, classes):
+        super().__init__(classes)
+        self._builder = aevae
+
+
+class Ens(Ensgendel):
+    def __init__(self, classes):
+        super().__init__(classes)
+        self._builder = evae
