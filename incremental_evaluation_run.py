@@ -37,19 +37,19 @@ if __name__ == '__main__':
     scenario_set_name = SS_MNIST012
     # scenario_set_name = SS_MNIST_CN5
     mode = []
-    # mode += [1]  # show scenario data
-    mode += [2]  # run predictor learning on scenarios
+    mode += [1]  # show scenario data
+    # mode += [2]  # run predictor learning on scenarios
     # mode += [3]  # evaluate predictors scenarios
     # mode += [4]  # write accuracy statistics into table
     # mode += [5]  # write accuracy statistics into table
 
     # list of predictor classes that implement the incremental_evaluation.interfaces.Predictor
     predictor_builders = [
-        models.basic_predictor_interfaces.LinearClassifierPredictor,
-        models.basic_predictor_interfaces.PerceptronClassifierPredictor,
+        # models.basic_predictor_interfaces.LinearClassifierPredictor,
+        # models.basic_predictor_interfaces.PerceptronClassifierPredictor,
         models.ensgendel_interface.Ensgendel,
-        models.ensgendel_interface.Ensgen,
-        models.ensgendel_interface.Ens,
+        # models.ensgendel_interface.Ensgen,
+        # models.ensgendel_interface.Ens,
     ]
 
     # scenario sets implementing the incremental_evaluation.interfaces.ScenarioSet

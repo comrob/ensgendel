@@ -5,7 +5,7 @@ import numpy as np
 
 
 class Ensgendel(I.Predictor):
-    def __init__(self, classes, max_epoch=2, gpu_on=True):
+    def __init__(self, classes, max_epoch=2, gpu_on=False):
         super(Ensgendel, self).__init__(classes)
         self._max_epoch = max_epoch
         self._class_num = len(classes)
@@ -44,7 +44,7 @@ class Ensgendel(I.Predictor):
         self._predictor_args["max_updates"] = max_updates
         self._predictor_args["subtract_epsilon"] = subtract_epsilon
 
-        self._predictor = adevae(self._predictor_args).builder()
+        self._predictor = self._builder(self._predictor_args).builder()
         samples_provider = SP.CompactGanSampleProvider(self._predictor.units)
         self._predictor.set_samples_provider(samples_provider)
 

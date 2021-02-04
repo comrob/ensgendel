@@ -30,8 +30,16 @@ class MnistMinimalScenarios(I.ScenarioSet):
         if scout_subset is not None:
             ids = np.arange(self._training_samples.shape[0])
             np.random.shuffle(ids)
-            self._training_samples = self._training_samples[ids[:scout_subset], :]
-            self._training_subclasses = self._training_subclasses[ids[:scout_subset]]
+            self._training_samples = self._training_samples[ids, :]
+            self._training_subclasses = self._training_subclasses[ids]
+
+            selected = []
+            for i in digits_tripplet:
+                selected.append((np.where(self._training_subclasses == i)[0])[:scout_subset])
+            sels = np.concatenate(selected)
+
+            self._training_samples = self._training_samples[sels, :]
+            self._training_subclasses = self._training_subclasses[sels]
 
 
 class MnistConvergentFiveScenarios(I.ScenarioSet):
@@ -55,8 +63,16 @@ class MnistConvergentFiveScenarios(I.ScenarioSet):
         if scout_subset is not None:
             ids = np.arange(self._training_samples.shape[0])
             np.random.shuffle(ids)
-            self._training_samples = self._training_samples[ids[:scout_subset], :]
-            self._training_subclasses = self._training_subclasses[ids[:scout_subset]]
+            self._training_samples = self._training_samples[ids, :]
+            self._training_subclasses = self._training_subclasses[ids]
+
+            selected = []
+            for i in range(10):
+                selected.append((np.where(self._training_subclasses == i)[0])[:scout_subset])
+            sels = np.concatenate(selected)
+
+            self._training_samples = self._training_samples[sels, :]
+            self._training_subclasses = self._training_subclasses[sels]
 
 
 class Gauss3DMinimalScenarios(I.ScenarioSet):
