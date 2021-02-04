@@ -2,7 +2,14 @@ import numpy as np
 from incremental_evaluation import utils as IE
 import matplotlib.pyplot as plt
 from incremental_evaluation.scenario_sets import Gauss3DMinimalScenarios
+import os
 
+def scenario_into_filename(scenario_string):
+    """
+    Since brackets aren't allowed in filenames, scenario is encoded into something more saveable.
+    """
+    return scenario_string.replace(' ', '').replace('[','').replace('],', 'a').replace(']', '').\
+        replace('{','T').replace('}','').replace(',','').replace(':','x')
 
 def mnist_visualiser(figure, active_samples, active_labels, title, sample_num=10):
     label_set = np.unique(active_labels)
@@ -43,9 +50,13 @@ def gauss3d_visualiser(figure, active_samples, active_labels, title, sample_num=
     f.legend()
 
 
-def show_scenario(scenario, samples, subclasses, visualiser):
+def show_scenario(scenario, samples, subclasses, visualiser, show_plot=False, save_into=None):
     fig_cou = 0
     visualiser(plt.figure(fig_cou), samples, subclasses, "Subclasses of scenario {}".format(scenario))
+    if save_into is not None:
+        name = "preview_all_subclasses.pdf"
+        plt.savefig(os.path.join(save_into, name), bbox_inches='tight')
+
     for i in range(len(scenario)):
         labels = IE.get_train_set_labels(scenario, i, subclasses)
         active_rows = np.where(labels != IE.NULL_LABEL)[0]
@@ -56,6 +67,9 @@ def show_scenario(scenario, samples, subclasses, visualiser):
         fig_cou += 1
         fig = plt.figure(fig_cou)
         visualiser(fig, active_samples, active_labels, "train task [{}]: {}".format(i, scenario[i]))
+        if save_into is not None:
+            name = "preview{}_{}_train.pdf".format(i, scenario_into_filename(str(scenario[i])))
+            plt.savefig(os.path.join(save_into, name), bbox_inches='tight')
 
     for i in range(len(scenario)):
         labels = IE.get_test_set_labels(scenario, i, subclasses)
@@ -68,7 +82,11 @@ def show_scenario(scenario, samples, subclasses, visualiser):
         fig_cou += 1
         fig = plt.figure(fig_cou)
         visualiser(fig, active_samples, active_labels, "test task [{}] {}, perfect: {}".format(i, scenario[i], perfect_task))
-    plt.show()
+        if save_into is not None:
+            name = "preview{}_{}_test.pdf".format(i, scenario_into_filename(str(scenario[i])))
+            plt.savefig(os.path.join(save_into, name), bbox_inches='tight')
+    if show_plot:
+        plt.show()
 
 def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_join="\\\\\n",
                           nice_predictor_names=None, force_scenario_order=None, nice_scenario_names=None):
@@ -107,7 +125,7 @@ def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_j
 
 
 def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats=None, legend_on=True, fig_path=None,
-                     title=None):
+                     title=None, show_plot=False):
     plt.rcParams["figure.figsize"] = (6, 3)
     fig = plt.figure()
     if title is not None:
@@ -144,4 +162,5 @@ def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats
         plt.savefig(fig_path, bbox_inches='tight')
 
     ###################################
-    plt.show()
+    if show_plot:
+        plt.show()

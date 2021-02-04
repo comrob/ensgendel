@@ -5,6 +5,8 @@ import models.basic_predictor_interfaces
 import models.ensgendel_interface
 import incremental_evaluation.data_file_helper as DFH
 import os
+import argparse
+
 SS_MNIST012 = "mnist012"
 SS_MNIST197 = "mnist197"
 SS_MNIST_CN5 = "mnist_cn5"
@@ -19,25 +21,32 @@ def datafile_path(_experiment_name, _scenario_set_name, _trial_tag):
 def stat_cell_format(stats, iteration):
     return "{:.2f}({:.2f})".format(stats["mean"][iteration], stats["std"][iteration])
 
-
-def scenario_into_filename(scenario_string):
-    return scenario_string.replace(' ', '').replace('[','').replace('],', 'a').replace(']', '').\
-        replace('{','T').replace('}','').replace(',','').replace(':','x')
-
-
+parser = argparse.ArgumentParser(description="EnsGenDel algorithm & Incremental evaluation framework")
+parser.add_argument('experiment_name', help="Experiment name which will be in file prefix.")
+parser.add_argument('scenario_name', help="Select the scenario. One of the following: " + str([
+    SS_MNIST012, SS_MNIST197, SS_MNIST_CN5, SS_GAUSS3]) + "The scenario name is appended after experiment_name.")
+parser.add_argument('modes',
+                    help="Series of numbers activating five modes of this application:"
+                         "1-scenario preview, 2-predictor training, 3-debug evaluation,"
+                         " 4-generate csv table with evaluation stats, 5-generate accuracy plots"
+                         ";e.g., '24' trains the predictors and thes generates csv table with results.")
+parser.add_argument('--trials', type=int, default=1, help="Number of independend runs. The trial number is appended "
+                                                          "in the postfix of the file.")
+parser.add_argument('--trials_from', type=int, default=0, help="Index of the first trial.")
+parser.add_argument('--scout_number', type=int, default=-1, help="Cropping the training set. Speeding up the training "
+                                                                 "at the cost of less accuracy.")
+parser.add_argument("--debug", default=False, type=bool, help="Runs only light weight models. True/False")
 
 if __name__ == '__main__':
+    args = parser.parse_args()
 
     # Experiment setup
-    trial_tags = [0]#,1,2,3]
-    # experiment_name = "exp2"
-    experiment_name = "expxx"
-    # experiment_name = "exp1"
-    scout_subset = 1000
-    scenario_set_name = SS_MNIST012
-    # scenario_set_name = SS_MNIST_CN5
-    mode = []
-    mode += [1]  # show scenario data
+    trial_tags = [i for i in range(args.trials_from, args.trials_from + args.trials)]
+    experiment_name = args.experiment_name
+    scout_subset = args.scout_number if args.scout_number > 0 else None
+    scenario_set_name = args.scenario_name
+    mode = list(map(int, args.modes))
+    # mode += [1]  # show scenario data
     # mode += [2]  # run predictor learning on scenarios
     # mode += [3]  # evaluate predictors scenarios
     # mode += [4]  # write accuracy statistics into table
@@ -45,12 +54,15 @@ if __name__ == '__main__':
 
     # list of predictor classes that implement the incremental_evaluation.interfaces.Predictor
     predictor_builders = [
-        # models.basic_predictor_interfaces.LinearClassifierPredictor,
-        # models.basic_predictor_interfaces.PerceptronClassifierPredictor,
-        models.ensgendel_interface.Ensgendel,
-        # models.ensgendel_interface.Ensgen,
-        # models.ensgendel_interface.Ens,
-    ]
+        models.basic_predictor_interfaces.LinearClassifierPredictor,
+        models.basic_predictor_interfaces.PerceptronClassifierPredictor,
+        ]
+    if not args.debug:
+        predictor_builders += [
+            models.ensgendel_interface.Ensgendel,
+            models.ensgendel_interface.Ensgen,
+            models.ensgendel_interface.Ens,
+        ]
 
     # scenario sets implementing the incremental_evaluation.interfaces.ScenarioSet
     if scenario_set_name == SS_MNIST012:
@@ -68,19 +80,23 @@ if __name__ == '__main__':
     else:
         raise NotImplementedError(scenario_set_name)
 
+    # setting up basic directories
+    if not os.path.exists("results"):
+        os.mkdir("results")
+    if not os.path.exists(RESULTS):
+        os.mkdir(RESULTS)
+
     # Pre-flight check of the scenario
     if 1 in mode:
         scenarios = scenario_set.get_scenarios()
         train_sam, train_sub = scenario_set.get_training_set()
         test_sam, test_sub = scenario_set.get_test_set()
         for scenario in scenarios:
-            VH.show_scenario(scenario, test_sam, test_sub, visualiser)
-
-    # setting up basic directories
-    if not os.path.exists("results"):
-        os.mkdir("results")
-    if not os.path.exists(RESULTS):
-        os.mkdir(RESULTS)
+            folder_name = "preview_{}".format(VH.scenario_into_filename(str(scenario)))
+            folder_path = os.path.join(RESULTS, folder_name)
+            if not os.path.exists(folder_path):
+                os.mkdir(folder_path)
+            VH.show_scenario(scenario, test_sam, test_sub, visualiser, save_into=folder_path)
 
     # Cycle of experiment runs
     for trial_tag in trial_tags:
@@ -144,7 +160,7 @@ if __name__ == '__main__':
                 portfolio, over_testing_set=True, task_accuracy_type=None, evaluator=tracked_evaluation)
             # visualisaiton
             fig_path = os.path.join(RESULTS, "{}_{}_{}_accuracy.pdf".format(experiment_name, scenario_set_name,
-                                                                            scenario_into_filename(scenario)))
+                                                                            VH.scenario_into_filename(scenario)))
             VH.show_metric_evol(eval_stats_total, scenario, classifier_style,
                                 fig_path=fig_path, selected_eval_stats=eval_stats_tracked, title=scenario)
             print("fig of scenario {} saved into {}".format(scenario, fig_path))
