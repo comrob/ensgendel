@@ -31,8 +31,8 @@ if __name__ == '__main__':
     trial_tags = [0]
     experiment_name = "test1"
     scout_subset = 100
-    # scenario_set_name = SS_MNIST012
-    scenario_set_name = SS_MNIST_CN5
+    scenario_set_name = SS_MNIST012
+    # scenario_set_name = SS_MNIST_CN5
     mode = []
     # mode += [1]  # show scenario data
     mode += [2]  # run predictor learning on scenarios
