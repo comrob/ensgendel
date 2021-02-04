@@ -5,8 +5,8 @@ import numpy as np
 
 
 class Ensgendel(I.Predictor):
-    def __init__(self, classes, max_epoch=20, gpu_on=False):
-        super().__init__(classes)
+    def __init__(self, classes, max_epoch=2, gpu_on=True):
+        super(Ensgendel, self).__init__(classes)
         self._max_epoch = max_epoch
         self._class_num = len(classes)
         # common params
