@@ -95,11 +95,11 @@ class Ensgendel(I.Predictor):
 
 class Ensgen(Ensgendel):
     def __init__(self, classes):
-        super().__init__(classes)
+        super(Ensgen, self).__init__(classes)
         self._builder = aevae
 
 
 class Ens(Ensgendel):
     def __init__(self, classes):
-        super().__init__(classes)
+        super(Ens, self).__init__(classes)
         self._builder = evae
