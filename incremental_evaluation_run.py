@@ -29,17 +29,19 @@ def scenario_into_filename(scenario_string):
 if __name__ == '__main__':
 
     # Experiment setup
-    trial_tags = [0,1,2,3]
-    experiment_name = "exp1"
+    trial_tags = [0]#,1,2,3]
+    # experiment_name = "exp2"
+    experiment_name = "expxx"
+    # experiment_name = "exp1"
     scout_subset = 1000
-    # scenario_set_name = SS_MNIST012
-    scenario_set_name = SS_MNIST_CN5
+    scenario_set_name = SS_MNIST012
+    # scenario_set_name = SS_MNIST_CN5
     mode = []
     # mode += [1]  # show scenario data
     mode += [2]  # run predictor learning on scenarios
-    mode += [3]  # evaluate predictors scenarios
-    mode += [4]  # write accuracy statistics into table
-    mode += [5]  # write accuracy statistics into table
+    # mode += [3]  # evaluate predictors scenarios
+    # mode += [4]  # write accuracy statistics into table
+    # mode += [5]  # write accuracy statistics into table
 
     # list of predictor classes that implement the incremental_evaluation.interfaces.Predictor
     predictor_builders = [

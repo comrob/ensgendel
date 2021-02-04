@@ -83,7 +83,7 @@ def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_j
             row = [nice_predictor_names[pred_type]]
         if first_pred:
             if force_scenario_order is None:
-                scenarios = eval_stats[pred_type].keys()
+                scenarios = list(eval_stats[pred_type].keys())
             else:
                 scenarios = force_scenario_order
                 assert set(eval_stats[pred_type].keys()) == set(force_scenario_order), "forced scenarios must match with contained ones"
@@ -98,7 +98,7 @@ def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_j
     header = ["predictors"]
     for i, sc in enumerate(scenarios):
         if nice_scenario_names is None:
-            header += [sc] + [""]*(scenario_lengths[i]-1)
+            header += [str(sc)] + [""]*(scenario_lengths[i]-1)
         else:
             header += [nice_scenario_names[sc]] + [""] * (scenario_lengths[i] - 1)
 
