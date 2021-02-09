@@ -21,16 +21,27 @@ def datafile_path(_experiment_name, _scenario_set_name, _trial_tag):
 def stat_cell_format(stats, iteration):
     return "{:.2f}({:.2f})".format(stats["mean"][iteration], stats["std"][iteration])
 
-parser = argparse.ArgumentParser(description="EnsGenDel algorithm & Incremental evaluation framework")
+parser = argparse.ArgumentParser(description="EnsGenDel algorithm & Incremental evaluation framework.\n"
+                                             "The continual learning algorithms are evaluated in predefined scenarios."
+                                             "For example: [{0:[9,7]}, {0:[8], 1:[7]}] is a scenario of two tasks."
+                                             "In the first task {0: [9, 7]} the predictor gets training instances of "
+                                             "nines and sevens images labeled as 0. In the second task {0:[8], 1:[7]} "
+                                             "the predictor gets training instances of eights labeled as 0 and "
+                                             "sevens labeled as 1. Note that the sevens changed the label. After the "
+                                             "second task the predictor should classify nines and eights as 0 and "
+                                             "sevens as 1.\n"
+                                             "The scenario is encoded into bracket-less notation in filenames, e.g., "
+                                             "[{0:[9,7]}, {0:[8], 1:[7]}] -> T0x97T0x8a1x7 (any resemblance with "
+                                             "hexadecimals is purely coincidental).")
 parser.add_argument('experiment_name', help="Experiment name which will be in file prefix.")
 parser.add_argument('scenario_name', help="Select the scenario. One of the following: " + str([
     SS_MNIST012, SS_MNIST197, SS_MNIST_CN5, SS_GAUSS3]) + "The scenario name is appended after experiment_name.")
 parser.add_argument('modes',
                     help="Series of numbers activating five modes of this application:"
-                         "1-scenario preview, 2-predictor training, 3-debug evaluation,"
-                         " 4-generate csv table with evaluation stats, 5-generate accuracy plots"
-                         ";e.g., '24' trains the predictors and thes generates csv table with results.")
-parser.add_argument('--trials', type=int, default=1, help="Number of independend runs. The trial number is appended "
+                         "1:scenario preview; 2:predictor training; 3:debug evaluation; "
+                         "4:generate csv table with evaluation stats; 5:generate accuracy plots"
+                         ";e.g., '24' trains the predictors and then generates csv table with results.")
+parser.add_argument('--trials', type=int, default=1, help="Number of independent runs. The trial number is appended "
                                                           "in the postfix of the file.")
 parser.add_argument('--trials_from', type=int, default=0, help="Index of the first trial.")
 parser.add_argument('--scout_number', type=int, default=-1, help="Cropping the training set. Speeding up the training "

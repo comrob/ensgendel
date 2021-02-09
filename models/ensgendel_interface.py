@@ -2,10 +2,17 @@ import incremental_evaluation.interfaces as I
 from models.classifier_builders import adevae, aevae, evae
 import models.ensgendel.samples_provider as SP
 import numpy as np
+try:
+    import cupy as cp
+    GPU_ON = True
+except:
+    print("CUPY is not installed, setting cp to numpy, ensgendel will run on CPU")
+    import numpy as cp
+    GPU_ON = False
 
 
 class Ensgendel(I.Predictor):
-    def __init__(self, classes, max_epoch=20, gpu_on=True):
+    def __init__(self, classes, max_epoch=20, gpu_on=GPU_ON):
         super(Ensgendel, self).__init__(classes)
         self._max_epoch = max_epoch
         self._class_num = len(classes)
