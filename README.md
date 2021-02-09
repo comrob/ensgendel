@@ -43,13 +43,21 @@ For instance, scenario `[{0: [2], 1:[3]}, {0: [4]}]` is composed of two tasks, w
 classifier is trained on subclass 2 labeled as 0 (e.g., images of twos labeled as 0) and 3 with label 1.
 ### CSV table
 ### Accuracy Plot
-The mode 5 creates plots with accuracy statistics (e.g., `python incremental_evaluation_run.py exp11 mnist_cn5 5 --trials 3`).
-![](results/incremental_evaluation_run/exp11_mnist_cn5_T0x0T1x1T2x2T3x3T4x4_accuracy.pdf "d")
-Scenario where the classifiers train a new class each scenario.
-The total accuracy, accuracy of all five classes correctly classified, is shown in full lines.
+The mode 5 creates plots with accuracy statistics (e.g., `python incremental_evaluation_run.py exp11 mnist_cn5 5 --trials 3`).\
+In `[{0: [0]}, {1: [1]}, {2: [2]}, {3: [3]}, {4: [4]}]` scenario, the classifiers train a new class each task.
+The total accuracy, accuracy of all five classes correctly classified, is shown in full lines.  
 We also track particular assignment, in this case zeroes being classified as 0 `{0: [0]}` where we can see that 
-the Perceptron catastrophically forgets its label as the tasks progresses. 
-
+the Perceptron catastrophically forgets its label in consequent tasks. \
+![](results/incremental_evaluation_run/exp11_mnist_cn5_T0x0T1x1T2x2T3x3T4x4_accuracy.png)\
+In `[{0: [0], 1: [1]}, {0: [2], 1: [3]}, {0: [4], 1: [5]}, {0: [6], 1: [7]}, {0: [8], 1: [9]}]` scenario, the predictors 
+train to recognize even (label 0) and odd (label 1) digits incrementally.
+Here, only Ensgendel and Ensgen predictors are able to recall that zero is an even number (`{0: [0]}`).\  
+![](results/incremental_evaluation_run/exp11_mnist_cn5_T0x0a1x1T0x2a1x3T0x4a1x5T0x6a1x7T0x8a1x9_accuracy.png)\
+Finally, the `[{0: [1, 2, 3, 4, 5], 1: [0]}, {1: [1]}, {1: [2]}, {1: [3]}, {1: [4]}]` we test the ability to 
+forget when needed. 
+Only the Ensgendel and Perceptron are able to forget (although Perceptron also forgets when it is not needed).
+The accuracies of Ens and Ensgen barely increases as they don't forget the assignments trained in the first task.
+![](results/incremental_evaluation_run/exp11_mnist_cn5_T0x12345a1x0T1x1T1x2T1x3T1x4_accuracy.png)\
 ## Adding new continual learners and scenarios
 You can integrate new continual learners and scenarios by implementing the interfaces **Predictor** and **ScenarioSet**,
  respectively. See interface definitions in *incremental_evaluation/interfaces* for details.
