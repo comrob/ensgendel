@@ -59,6 +59,7 @@ class VariationalAutoencoder(Classifier):
         self._args_names = "feat_size, hidden_size, latent_size, learning_rate, gpu_on, mini_batch, threshold, extended_dimension, threshold_extended"
 
         self.feat_size = feat_size
+        self.hidden_size = hidden_size
         self.latent_size = latent_size
         self.observer = {"loss": 0, "rec_loss": 0, "reg_loss": 0, "cost": 0, "cost_decoder": 0, "cost_encoder": 0}
         self.learning_rate = learning_rate
@@ -78,7 +79,7 @@ class VariationalAutoencoder(Classifier):
 
         self.extension_loss = self._extension_squared_loss
         # CLASSIFIER SETUP
-
+        self.gpu_on = gpu_on
         if gpu_on:
             self.model.to_gpu()
 
@@ -89,6 +90,12 @@ class VariationalAutoencoder(Classifier):
             # self.optimiser.lr=0
             # self.optimiser.add_hook(WeightDecay(0.0005))
         return self.optimiser
+
+    def remodel(self):
+        self.model.cleargrads()
+        #self.model = self.Model(self.feat_size, self.hidden_size, self.latent_size, xp=self._xp)
+        #if self.gpu_on:
+        #    self.model.to_gpu()
 
     def _extension_bernoulli_loss(self, labels, extension):
         return F.bernoulli_nll(labels, extension)

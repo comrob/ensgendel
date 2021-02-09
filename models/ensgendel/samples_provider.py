@@ -51,11 +51,11 @@ class CompactGanSampleProvider(SamplesProvider):
             self._samples[unit_id] = self._extract_from_gan(unit_id)
             self._dirty[unit_id] = False
         if called:
-            self._dirty[unit_id] = True
+            self._dirty[unit_id] = False # FIXME: shouldnt end up here but just in case
         return self._samples[unit_id]
 
     def get_positive_samples(self, unit_id):
-        return self._get_positive_samples(unit_id, called=True)
+        return self._get_positive_samples(unit_id, called=False)
 
     def get_negative_samples(self, unit_id):
         return np.concatenate(

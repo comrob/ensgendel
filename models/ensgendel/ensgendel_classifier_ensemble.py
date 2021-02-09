@@ -19,6 +19,10 @@ class AddDelEnsembleClassifier(ClassifierEnsemble):
         self._prev_cost_del = 0
         self._uncover_off = uncover_off
 
+    def purge_optimizers(self):
+        for unit in self.units:
+            unit.optimiser = None
+            unit.remodel()
 
     def cover(self, unit_index, samples, outside_samples, sampling_on=True):
         if sampling_on:
