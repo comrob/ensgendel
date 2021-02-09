@@ -64,15 +64,17 @@ if __name__ == '__main__':
     # mode += [5]  # write accuracy statistics into table
 
     # list of predictor classes that implement the incremental_evaluation.interfaces.Predictor
-    predictor_builders = [
-        models.basic_predictor_interfaces.LinearClassifierPredictor,
-        models.basic_predictor_interfaces.PerceptronClassifierPredictor,
-        ]
-    if not args.debug:
-        predictor_builders += [
+    if args.debug:
+        predictor_builders = [
+            models.basic_predictor_interfaces.SGD,
+            models.basic_predictor_interfaces.Perceptron,
+            ]
+    else:
+        predictor_builders = [
             models.ensgendel_interface.Ensgendel,
             models.ensgendel_interface.Ensgen,
             models.ensgendel_interface.Ens,
+            models.basic_predictor_interfaces.Perceptron,
         ]
 
     # scenario sets implementing the incremental_evaluation.interfaces.ScenarioSet
@@ -164,14 +166,22 @@ if __name__ == '__main__':
             scenario_obj = eval(scenario)
             tracked_label = list(scenario_obj[0].keys())[0]
             tracked_subclass = scenario_obj[0][tracked_label][-1]
-
+            # tracking the selected subclass label assignment
             def tracked_evaluation(_scen, _pred, _subs): # lambda for tracking
                 return IE.evaluate_selected_subclass_accuracy(_scen, _pred, _subs, tracked_subclass, tracked_label)
             eval_stats_tracked = DFH.extract_stats_for_portfolio(
                 portfolio, over_testing_set=True, task_accuracy_type=None, evaluator=tracked_evaluation)
+            # titles and names
+            _scenario_str = scenario
+            if type(scenario) is bytes:
+                _scenario_str = scenario.decode('ASCII')  # sometimes hdf5 returns bytes instead of strings
+            test_task = str(IE.get_perfect_task_map(scenario_obj, len(scenario_obj) - 1))
+            tracked_task = "{{{}: [{}]}}".format(tracked_label, tracked_subclass)
+            title = "Scenario: {}\ntest task {}(full), tracked assignment {}(dashed)".format(
+                _scenario_str, test_task, tracked_task)
             # visualisaiton
             fig_path = os.path.join(RESULTS, "{}_{}_{}_accuracy.pdf".format(experiment_name, scenario_set_name,
-                                                                            VH.scenario_into_filename(scenario)))
+                                                                            VH.scenario_into_filename(_scenario_str)))
             VH.show_metric_evol(eval_stats_total, scenario, classifier_style,
-                                fig_path=fig_path, selected_eval_stats=eval_stats_tracked, title=scenario)
+                                fig_path=fig_path, tracked_eval_stats=eval_stats_tracked, title=title)
             print("fig of scenario {} saved into {}".format(scenario, fig_path))
