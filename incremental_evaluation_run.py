@@ -11,6 +11,10 @@ SS_MNIST012 = "mnist012"
 SS_MNIST197 = "mnist197"
 SS_MNIST_CN5 = "mnist_cn5"
 SS_GAUSS3 = "gauss_3"
+SS_CIFAR10_012 = "cifar10_012"
+SS_CIFAR10_197 = "cifar10_197"
+SS_CIFAR10_CN5 = "cifar10_cn5"
+SS_CIFAR10_012_IMG = "cifar10_012_img"
 RESULTS = os.path.join("results", "incremental_evaluation_run")
 
 
@@ -71,10 +75,11 @@ if __name__ == '__main__':
             ]
     else:
         predictor_builders = [
-            models.ensgendel_interface.Ensgendel,
-            models.ensgendel_interface.Ensgen,
-            models.ensgendel_interface.Ens,
-            models.basic_predictor_interfaces.Perceptron,
+            models.ensgendel_interface.CnnEnsgendel,
+            # models.ensgendel_interface.Ensgendel,
+            # models.ensgendel_interface.Ensgen,
+            # models.ensgendel_interface.Ens,
+            # models.basic_predictor_interfaces.Perceptron,
         ]
 
     # scenario sets implementing the incremental_evaluation.interfaces.ScenarioSet
@@ -90,6 +95,14 @@ if __name__ == '__main__':
     elif scenario_set_name == SS_GAUSS3:
         scenario_set = SS.Gauss3DMinimalScenarios(train_size=scout_subset)
         visualiser = VH.gauss3d_visualiser
+    elif scenario_set_name == SS_CIFAR10_012:
+        scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10256"),
+                                                  digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
+        visualiser = VH.gauss3d_visualiser  # TODO: prepare
+    elif scenario_set_name == SS_CIFAR10_012_IMG:
+        scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
+                                                  digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
+        visualiser = VH.mnist_visualiser  # TODO: prepare
     else:
         raise NotImplementedError(scenario_set_name)
 

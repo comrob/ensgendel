@@ -1,5 +1,5 @@
 import incremental_evaluation.interfaces as I
-from models.classifier_builders import adevae, aevae, evae
+from models.classifier_builders import adevae, aevae, evae, cnn_adevae
 import models.ensgendel.samples_provider as SP
 import numpy as np
 try:
@@ -53,9 +53,13 @@ class Ensgendel(I.Predictor):
 
         self._predictor = self._builder(self._predictor_args).builder()
 
+    def _transform_X(self, X):
+        return X
+
     def fit(self, X, y):
         if self._is_first_fit:
             self._before_first_fit(X, y)
+        X = self._transform_X(X)
         self._predictor.purge_optimizers()
         self._predictor.set_samples_provider(SP.CompactGanSampleProvider(self._predictor.units))
         ####
@@ -114,3 +118,42 @@ class Ens(Ensgendel):
     def __init__(self, classes):
         super(Ens, self).__init__(classes)
         self._builder = evae
+
+
+class CnnEnsgendel(Ensgendel):
+    def __init__(self, classes, max_epoch=20, gpu_on=GPU_ON):
+        super(CnnEnsgendel, self).__init__(classes)
+        self._max_epoch = max_epoch
+        self._class_num = len(classes)
+        # common params
+        self._predictor_args = {"units_number": self._class_num}
+        self._predictor_args["gpu_on"] = gpu_on
+        self._predictor_args["mini_batch"] = 128
+        self._predictor_args["max_epoch"] = max_epoch
+        self._predictor_args["min_updates"] = 0
+        self._predictor_args["learning_rate"] = 0.001
+        self._is_first_fit = True
+        self._builder = cnn_adevae
+
+    def _before_first_fit(self, X, y):
+        self._is_first_fit = False
+        #domain specific parameters
+        self._predictor_args["feat_size"] = X.shape[3]
+        self._predictor_args["channels"] = X.shape[1]
+
+        max_updates = 100
+        hidden_size = 64
+        latent_size = 8
+        threshold = 0.1
+        subtract_epsilon = 4
+
+        self._predictor_args["hidden_size"] = hidden_size
+        self._predictor_args["latent_size"] = latent_size
+        self._predictor_args["threshold"] = threshold
+        self._predictor_args["max_updates"] = max_updates
+        self._predictor_args["subtract_epsilon"] = subtract_epsilon
+
+        self._predictor = self._builder(self._predictor_args).builder()
+
+    def _transform_X(self, X):
+        return X.reshape((X.shape[0], X.shape[1] * X.shape[2] * X.shape[3]))

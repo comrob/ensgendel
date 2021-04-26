@@ -2,7 +2,82 @@ import incremental_evaluation.interfaces as I
 import numpy as np
 from incremental_evaluation import utils as IE
 from chainer import datasets
+import os
 
+
+class FeatureMinimalScenarios(I.ScenarioSet):
+    TRAIN_LABELS = "train_y.npy"
+    TRAIN_SAMPLES = "train_x.npy"
+    TEST_LABELS = "test_y.npy"
+    TEST_SAMPLES = "test_x.npy"
+
+    def __init__(self, dataset_path, digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=None):
+        super(FeatureMinimalScenarios, self).__init__()
+        fir, sec, thr = digits_tripplet
+
+        scenario_add = [{0: [fir]}, {1: [thr]}]
+        scenario_exp = [{0: [fir]}, {1: [thr], 0: [sec]}]
+        scenario_inc = [{0: [fir], 1: [sec]}, {1: [thr], 0: [sec]}]
+        scenario_sep = [{0: [fir, sec]}, {1: [sec, thr]}]
+        if not debug_set:
+            self._scenarios = [
+                scenario_add,
+                scenario_exp,
+                scenario_inc,
+                scenario_sep
+            ]
+        else:
+            self._scenarios = [
+                [{0: [fir], 1: [sec]}]
+            ]
+
+        self._training_samples, self._training_subclasses, self._testing_samples, self._testing_subclasses = (
+            np.load(os.path.join(dataset_path, self.TRAIN_SAMPLES)),
+            np.load(os.path.join(dataset_path, self.TRAIN_LABELS)),
+            np.load(os.path.join(dataset_path, self.TEST_SAMPLES)),
+            np.load(os.path.join(dataset_path, self.TEST_LABELS)),
+        )
+        self._training_subclasses = self._training_subclasses[:self._training_samples.shape[0]]
+        if scout_subset is not None:
+            ids = np.arange(self._training_samples.shape[0])
+            np.random.shuffle(ids)
+            self._training_samples = self._training_samples[ids[:scout_subset], :]
+            self._training_subclasses = self._training_subclasses[ids[:scout_subset]]
+
+
+class FeatureConvergentFiveScenarios(I.ScenarioSet):
+    TRAIN_LABELS = "train_y.npy"
+    TRAIN_SAMPLES = "train_x.npy"
+    TEST_LABELS = "test_y.npy"
+    TEST_SAMPLES = "test_x.npy"
+
+    def __init__(self, dataset_path, scout_subset=None):
+        super(FeatureConvergentFiveScenarios, self).__init__()
+
+        ## Long tasks
+        scenario_add5 = [{0: [0]}, {1: [1]}, {2: [2]}, {3: [3]}, {4: [4]}]
+        scenario_exp5 = [{0: [0], 1: [1]}, {0: [2], 1: [3]}, {0: [4], 1: [5]}, {0: [6], 1: [7]}, {0: [8], 1: [9]}]
+        scenario_sep5 = [{0: [1, 2, 3, 4, 5], 1: [0]}, {1: [1]}, {1: [2]}, {1: [3]}, {1: [4]}]
+
+        self._scenarios = [
+            scenario_add5,
+            scenario_exp5,
+            scenario_sep5,
+        ]
+
+        self._training_samples, self._training_subclasses, self._testing_samples, self._testing_subclasses = (
+            np.load(os.path.join(dataset_path, self.TRAIN_SAMPLES)),
+            np.load(os.path.join(dataset_path, self.TRAIN_LABELS)),
+            np.load(os.path.join(dataset_path, self.TEST_SAMPLES)),
+            np.load(os.path.join(dataset_path, self.TEST_LABELS)),
+        )
+        self._training_subclasses = self._training_subclasses[:self._training_samples.shape[0]]
+
+        if scout_subset is not None:
+            ids = np.arange(self._training_samples.shape[0])
+            np.random.shuffle(ids)
+            self._training_samples = self._training_samples[ids[:scout_subset], :]
+            self._training_subclasses = self._training_subclasses[ids[:scout_subset]]
 
 class MnistMinimalScenarios(I.ScenarioSet):
     def __init__(self, digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=None):
