@@ -52,8 +52,6 @@ class Ensgendel(I.Predictor):
         self._predictor_args["subtract_epsilon"] = subtract_epsilon
 
         self._predictor = self._builder(self._predictor_args).builder()
-        #samples_provider = SP.CompactGanSampleProvider(self._predictor.units)
-        #self._predictor.set_samples_provider(samples_provider)
 
     def fit(self, X, y):
         if self._is_first_fit:
@@ -66,13 +64,13 @@ class Ensgendel(I.Predictor):
         batch_size_max = None
         max_epoch = self._max_epoch
         _ids = np.arange(X.shape[0])
-	np.random.shuffle(_ids)
+        np.random.shuffle(_ids)
         train_samples = X.astype(dtype=np.float32)
         train_labels = y.reshape((-1, 1))
-	train_samples = train_samples[_ids[:1000], :]
-	train_labels = train_labels[_ids[:1000], :]
+        train_samples = train_samples[_ids[:1000], :]
+        train_labels = train_labels[_ids[:1000], :]
         ####
-	print("dataset shape: {}, unique_labels: {}".format(train_samples.shape, np.unique(train_labels)))
+        print("dataset shape: {}, unique_labels: {}".format(train_samples.shape, np.unique(train_labels)))
         if fragment_set_size is None:
             fragment_set_size = train_samples.shape[0]
 

@@ -88,6 +88,7 @@ def show_scenario(scenario, samples, subclasses, visualiser, show_plot=False, sa
     if show_plot:
         plt.show()
 
+
 def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_join="\\\\\n",
                           nice_predictor_names=None, force_scenario_order=None, nice_scenario_names=None):
     scenarios = []
@@ -124,9 +125,11 @@ def stats_into_text_table(eval_stats, stat_cell_fromatter, cell_join="& ", row_j
     return row_join.join(map(cell_join.join, table))
 
 
-def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats=None, legend_on=True, fig_path=None,
+def show_metric_evol(eval_stats, scenario, classifier_style, tracked_eval_stats=None, legend_on=True, fig_path=None,
                      title=None, show_plot=False):
     plt.rcParams["figure.figsize"] = (6, 3)
+    plt.rcParams["xtick.labelsize"] = 7
+    plt.rcParams["figure.titlesize"] = 7
     fig = plt.figure()
     if title is not None:
         fig.suptitle(title)
@@ -134,6 +137,7 @@ def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats
         left=0.15, bottom=0.20, right=.98, top=0.83,
         wspace=0.12, hspace=0.05)
     figr = fig.subplots(1, 1)
+    scenario_obj = eval(scenario)
     for pred_type in eval_stats:
         cls_name = pred_type
         results = eval_stats[pred_type][scenario]
@@ -145,16 +149,16 @@ def show_metric_evol(eval_stats, scenario, classifier_style, selected_eval_stats
                   label=classifier_style[cls_name]["label"],
                   linestyle="-")
         figr.fill_between([i for i in range(results["min"].shape[0])],results["min"], results["max"], color=classifier_style[cls_name]["color"], alpha=0.2)
-        if selected_eval_stats is not None:
-            detail_results = selected_eval_stats[pred_type][scenario]
+        if tracked_eval_stats is not None:
+            detail_results = tracked_eval_stats[pred_type][scenario]
             figr.plot(detail_results["mean"],
                       marker=classifier_style[cls_name]["marker"],
                       color=classifier_style[cls_name]["color"],
                       linestyle="--")
-    figr.set_xlabel(r"task")
-    figr.set_ylabel(r"accuracy")
+    figr.set_xlabel("task")
+    figr.set_ylabel("accuracy")
     figr.set_xticks([t for t in range(tasks_num)])
-    figr.set_xticklabels([r"T_{}".format(t + 1) for t in range(tasks_num)])
+    figr.set_xticklabels(["T_{}\n{}".format(t + 1, scenario_obj[t]) for t in range(tasks_num)])
     figr.set_yticks([i*0.25 for i in range(5)])
     if legend_on:
         figr.legend()
