@@ -4,6 +4,25 @@ import matplotlib.pyplot as plt
 from incremental_evaluation.scenario_sets import Gauss3DMinimalScenarios
 import os
 
+
+def image_channel_first_visualiser(figure, active_samples, active_labels, title, sample_num=10):
+    label_set = np.unique(active_labels)
+    f = figure.subplots(len(label_set), sample_num)
+    figure.suptitle(title)
+    for i in range(len(label_set)):
+        sel_samples = active_samples[active_labels == label_set[i], :]
+        for j in range(sample_num):
+            if len(label_set) > 1:
+                fig = f[i][j]
+            else:
+                fig = f[j]
+            pixels = np.swapaxes(sel_samples[j, :, :, :], 0, -1)
+            fig.imshow(pixels)
+            if j == 0:
+                fig.set_ylabel("desc: {}".format(label_set[i]))
+
+
+
 def scenario_into_filename(scenario_string):
     """
     Since brackets aren't allowed in filenames, scenario is encoded into something more saveable.

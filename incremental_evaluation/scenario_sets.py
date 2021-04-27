@@ -22,9 +22,9 @@ class FeatureMinimalScenarios(I.ScenarioSet):
         if not debug_set:
             self._scenarios = [
                 scenario_add,
-                scenario_exp,
-                scenario_inc,
-                scenario_sep
+                # scenario_exp,
+                # scenario_inc,
+                # scenario_sep
             ]
         else:
             self._scenarios = [

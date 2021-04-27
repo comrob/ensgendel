@@ -6,7 +6,7 @@ import models.ensgendel_interface
 import incremental_evaluation.data_file_helper as DFH
 import os
 import argparse
-
+EVAL_OVER_TESTING_SET = False  # for debug
 SS_MNIST012 = "mnist012"
 SS_MNIST197 = "mnist197"
 SS_MNIST_CN5 = "mnist_cn5"
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     elif scenario_set_name == SS_CIFAR10_012_IMG:
         scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
                                                   digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
-        visualiser = VH.mnist_visualiser  # TODO: prepare
+        visualiser = VH.image_channel_first_visualiser  # TODO: prepare
     else:
         raise NotImplementedError(scenario_set_name)
 
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     portfolio = dict([(str(clazz), files) for clazz in predictor_builders])
 
     if 4 in mode:
-        eval_stats_total = DFH.extract_stats_for_portfolio(portfolio, over_testing_set=True,
+        eval_stats_total = DFH.extract_stats_for_portfolio(portfolio, over_testing_set=EVAL_OVER_TESTING_SET,
                                                            task_accuracy_type=DFH.TOTAL_ACCURACY)
         table = VH.stats_into_text_table(eval_stats_total, stat_cell_format, cell_join=';', row_join='\n')
         print(table)
@@ -170,7 +170,7 @@ if __name__ == '__main__':
              for i, clazz in enumerate(predictor_builders)]
         )
 
-        eval_stats_total = DFH.extract_stats_for_portfolio(portfolio, over_testing_set=True,
+        eval_stats_total = DFH.extract_stats_for_portfolio(portfolio, over_testing_set=EVAL_OVER_TESTING_SET,
                                                            task_accuracy_type=DFH.TOTAL_ACCURACY)
         scenarios = list(eval_stats_total[list(eval_stats_total.keys())[0]].keys())
         print(scenarios)
@@ -183,7 +183,7 @@ if __name__ == '__main__':
             def tracked_evaluation(_scen, _pred, _subs): # lambda for tracking
                 return IE.evaluate_selected_subclass_accuracy(_scen, _pred, _subs, tracked_subclass, tracked_label)
             eval_stats_tracked = DFH.extract_stats_for_portfolio(
-                portfolio, over_testing_set=True, task_accuracy_type=None, evaluator=tracked_evaluation)
+                portfolio, over_testing_set=EVAL_OVER_TESTING_SET, task_accuracy_type=None, evaluator=tracked_evaluation)
             # titles and names
             _scenario_str = scenario
             if type(scenario) is bytes:

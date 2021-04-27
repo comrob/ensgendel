@@ -197,6 +197,7 @@ class AddDelEnsembleClassifier(ClassifierEnsemble):
         if len(samples) == 0:
             return self.EMPTY_BOOL
         evaluated = self.units[unit_index].evaluate(samples)
+        print("in_wrap {}".format(evaluated))
         # print "{},{}".format(len(evaluated), np.sum(self.cmp(evaluated, self.threshold)))
         return self.cmp(evaluated, self.threshold + shift)
 

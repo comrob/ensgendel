@@ -142,11 +142,13 @@ class CnnEnsgendel(Ensgendel):
         self._predictor_args["channels"] = X.shape[1]
 
         max_updates = 100
-        hidden_size = 64
+        hidden_size = 256
         latent_size = 8
-        threshold = 0.1
-        subtract_epsilon = 4
+        threshold = 0.0005
+        subtract_epsilon = 20 #
+        max_gen_samples = 50
 
+        self._predictor_args["max_gen_samples"] = max_gen_samples
         self._predictor_args["hidden_size"] = hidden_size
         self._predictor_args["latent_size"] = latent_size
         self._predictor_args["threshold"] = threshold
