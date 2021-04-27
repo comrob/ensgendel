@@ -59,13 +59,13 @@ class Ensgendel(I.Predictor):
         if self._is_first_fit:
             self._before_first_fit(X, y)
         self._predictor.purge_optimizers()
-	self._predictor.set_samples_provider(SP.CompactGanSampleProvider(self._predictor.units))
+        self._predictor.set_samples_provider(SP.CompactGanSampleProvider(self._predictor.units))
         ####
         sampling_on = True
         fragment_set_size = 256
         batch_size_max = None
         max_epoch = self._max_epoch
-	_ids = np.arange(X.shape[0])
+        _ids = np.arange(X.shape[0])
 	np.random.shuffle(_ids)
         train_samples = X.astype(dtype=np.float32)
         train_labels = y.reshape((-1, 1))
