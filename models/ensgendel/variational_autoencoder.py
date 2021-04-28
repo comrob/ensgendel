@@ -279,17 +279,22 @@ class CnnVariationalAutoencoder(Classifier):
             self.feat_size = feat_size
             self.channels = channels
             self.hidden_size = hidden_size
-            cnn_depth = 4
+            cnn_depth = 3
             self.bottom_feat_size = feat_size // pow(2, cnn_depth)
             with self.init_scope():
                 # encoder
-                self.cnn_in = L.Convolution2D(channels, hidden_size // 8, ksize=4, stride=2, pad=1)
-                self.cnn_1 = L.Convolution2D(hidden_size // 8, hidden_size // 4, ksize=4, stride=2, pad=1)
-                self.cnn_2 = L.Convolution2D(hidden_size // 4, hidden_size // 2, ksize=4, stride=2, pad=1)
-                self.cnn_3 = L.Convolution2D(hidden_size // 2, hidden_size, ksize=2, stride=2, pad=0)
-                self.bn_1 = L.BatchNormalization(hidden_size // 4, use_gamma=False)
-                self.bn_2 = L.BatchNormalization(hidden_size // 2, use_gamma=False)
-                self.bn_3 = L.BatchNormalization(hidden_size, use_gamma=False)
+                self.cnn_in = L.Convolution2D(channels, hidden_size // 32,          ksize=3, stride=2, pad=1)
+                self.cnn_1 = L.Convolution2D(hidden_size // 32, hidden_size // 16,  ksize=3, stride=1, pad=1)
+                self.cnn_2 = L.Convolution2D(hidden_size // 16, hidden_size//8,     ksize=3, stride=2, pad=1)
+                self.cnn_3 = L.Convolution2D(hidden_size // 8, hidden_size//4,      ksize=3, stride=1, pad=1)
+                self.cnn_4 = L.Convolution2D(hidden_size // 4, hidden_size//2,      ksize=3, stride=2, pad=1)
+                self.cnn_5 = L.Convolution2D(hidden_size // 2, hidden_size,         ksize=3, stride=1, pad=1)
+
+                self.bn_1 = L.BatchNormalization(hidden_size // 16, use_gamma=False)
+                self.bn_2 = L.BatchNormalization(hidden_size // 8, use_gamma=False)
+                self.bn_3 = L.BatchNormalization(hidden_size // 4, use_gamma=False)
+                self.bn_4 = L.BatchNormalization(hidden_size // 2, use_gamma=False)
+                self.bn_5 = L.BatchNormalization(hidden_size, use_gamma=False)
 
                 self.e1 = L.Linear(self.bottom_feat_size * self.bottom_feat_size * hidden_size, hidden_size)
                 self.e2_mu = L.Linear(hidden_size, latent_size)
@@ -297,7 +302,7 @@ class CnnVariationalAutoencoder(Classifier):
                 # decoder
                 self.d1 = L.Linear(latent_size, hidden_size)
                 self.d2 = L.Linear(hidden_size, self.bottom_feat_size * self.bottom_feat_size * hidden_size)
-                self.dcnn_3 = L.Deconvolution2D(hidden_size, hidden_size//2, ksize=2, stride=2, pad=0)
+                self.dcnn_3 = L.Deconvolution2D(hidden_size, hidden_size//2, ksize=3, stride=1, pad=1)
                 self.dcnn_2 = L.Deconvolution2D(hidden_size//2, hidden_size//4, ksize=4, stride=2, pad=1)
                 self.dcnn_1 = L.Deconvolution2D(hidden_size//4, hidden_size//8, ksize=4, stride=2, pad=1)
                 self.dcnn_out = L.Deconvolution2D(hidden_size//8, channels, ksize=4, stride=2, pad=1)
@@ -317,8 +322,10 @@ class CnnVariationalAutoencoder(Classifier):
             h2 = F.relu(self.bn_1(self.cnn_1(h1)))
             h3 = F.relu(self.bn_2(self.cnn_2(h2)))
             h4 = F.relu(self.bn_3(self.cnn_3(h3)))
+            h5 = F.relu(self.bn_4(self.cnn_4(h4)))
+            h6 = F.relu(self.bn_5(self.cnn_5(h5)))
 
-            h_e1 = F.relu(self.e1(h4))
+            h_e1 = F.relu(self.e1(h6))
             mu = self.e2_mu(h_e1)
             ln_var = self.e2_ln_var(h_e1)
             return mu, ln_var
