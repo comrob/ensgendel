@@ -370,6 +370,7 @@ class CnnVariationalAutoencoder(Classifier):
         self.alpha_2 = 1
 
         self.extension_loss = self._extension_squared_loss
+        self.bernoulli_img = True
         # CLASSIFIER SETUP
         self.gpu_on = gpu_on
         if gpu_on:
@@ -416,9 +417,14 @@ class CnnVariationalAutoencoder(Classifier):
             feature, extension = self.model.decode(z)
             # Reconstruction cost is evaluated only for positive samples (label = 1)
 
-            positive_feature_error += F.sum(
-                _labels * F.reshape(F.sum_to(F.squared_difference(_real_samples, feature), (len(_real_samples), 1, 1, 1)), (-1, ))
-            )
+            if not self.bernoulli_img:
+                positive_feature_error += F.sum(
+                    _labels * F.reshape(F.sum_to(F.squared_difference(_real_samples, feature), (len(_real_samples), 1, 1, 1)), (-1, ))
+                )
+            else:
+                positive_feature_error += F.sum(
+                    _labels * F.reshape(F.sum_to(F.bernoulli_nll(_real_samples, feature, reduce='no'), (len(_real_samples), 1, 1, 1)), (-1, ))
+                )
 
         # EXTENSION ERROR
         extension_error += self.extension_loss(_labels, self.model.decode(mu)[1])
@@ -490,8 +496,12 @@ class CnnVariationalAutoencoder(Classifier):
             self.observer["cost_encoder"] = self.observer["reg_loss"]
 
     def get_imitations(self, n):
-        return self._image_to_vec(self.untype(
-            self.model.decode(Variable(self.retype(self.latent_samples_generator(n, self.latent_size))))[0].data))
+        if self.bernoulli_img:
+            return self._image_to_vec(self.untype(
+                F.sigmoid(self.model.decode(Variable(self.retype(self.latent_samples_generator(n, self.latent_size))))[0]).data))
+        else:
+            return self._image_to_vec(self.untype(
+                self.model.decode(Variable(self.retype(self.latent_samples_generator(n, self.latent_size))))[0].data))
 
     def predict(self, samples, threshold=None, **argv):
         samples = self._vec_to_image(samples)
@@ -522,9 +532,14 @@ class CnnVariationalAutoencoder(Classifier):
                 mu, ln_var = self.model.encode(minisamples)
                 feature, extension = self.model.decode(mu)
                 loss = 1 - F.sigmoid(extension)[:, 0]  # distance from one
-                loss += F.reshape(F.sum_to(
-                    F.squared_difference(minisamples, feature), shape=(len(minisamples), 1, 1, 1)
-                ), (len(minisamples), )) / self.feature_volume
+                if self.bernoulli_img:
+                    loss += F.reshape(F.sum_to(
+                        F.bernoulli_nll(minisamples, feature, reduce='no'), shape=(len(minisamples), 1, 1, 1)
+                    ), (len(minisamples),)) / self.feature_volume
+                else:
+                    loss += F.reshape(F.sum_to(
+                        F.squared_difference(minisamples, feature), shape=(len(minisamples), 1, 1, 1)
+                    ), (len(minisamples), )) / self.feature_volume
                 results.append(loss.data)
         return self.untype(self._xp.concatenate(results))
 
