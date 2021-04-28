@@ -272,10 +272,80 @@ class VariationalAutoencoder(Classifier):
 class CnnVariationalAutoencoder(Classifier):
     NAME = "CnnVariationalAutoencoder"
 
-    class Model(Chain):
+    class ModelSmall(Chain):
 
         def __init__(self, feat_size, hidden_size, latent_size, channels, xp=np, **links):
-            super(CnnVariationalAutoencoder.Model, self).__init__(**links)
+            super(CnnVariationalAutoencoder.ModelSmall, self).__init__(**links)
+            self.feat_size = feat_size
+            self.channels = channels
+            self.hidden_size = hidden_size
+            cnn_depth = 4
+            self.bottom_feat_size = feat_size // pow(2, cnn_depth)
+            with self.init_scope():
+                # encoder
+                self.cnn_in = L.Convolution2D(channels, hidden_size // 8, ksize=4, stride=2, pad=1)
+                self.cnn_1 = L.Convolution2D(hidden_size // 8, hidden_size // 4, ksize=4, stride=2, pad=1)
+                self.cnn_2 = L.Convolution2D(hidden_size // 4, hidden_size // 2, ksize=4, stride=2, pad=1)
+                self.cnn_3 = L.Convolution2D(hidden_size // 2, hidden_size, ksize=2, stride=2, pad=0)
+                self.bn_1 = L.BatchNormalization(hidden_size // 4, use_gamma=False)
+                self.bn_2 = L.BatchNormalization(hidden_size // 2, use_gamma=False)
+                self.bn_3 = L.BatchNormalization(hidden_size, use_gamma=False)
+
+                self.e1 = L.Linear(self.bottom_feat_size * self.bottom_feat_size * hidden_size, hidden_size)
+                self.e2_mu = L.Linear(hidden_size, latent_size)
+                self.e2_ln_var = L.Linear(hidden_size, latent_size)
+                # decoder
+                self.d1 = L.Linear(latent_size, hidden_size)
+                self.d2 = L.Linear(hidden_size, self.bottom_feat_size * self.bottom_feat_size * hidden_size)
+                self.dcnn_3 = L.Deconvolution2D(hidden_size, hidden_size//2, ksize=2, stride=2, pad=0)
+                self.dcnn_2 = L.Deconvolution2D(hidden_size // 2, hidden_size // 4, ksize=4, stride=2, pad=1)
+                self.dcnn_1 = L.Deconvolution2D(hidden_size // 4, hidden_size // 8, ksize=4, stride=2, pad=1)
+                self.dcnn_out = L.Deconvolution2D(hidden_size // 8, channels, ksize=4, stride=2, pad=1)
+                self.dbn_3 = L.BatchNormalization(hidden_size // 2, use_gamma=False)
+                self.dbn_2 = L.BatchNormalization(hidden_size // 4, use_gamma=False)
+                self.dbn_1 = L.BatchNormalization(hidden_size // 8, use_gamma=False)
+
+                # extension
+                self.ex_out = L.Linear(self.bottom_feat_size * self.bottom_feat_size * hidden_size, 1)
+
+        def __call__(self, x):
+            return self.decode(self.encode(x)[0])
+
+        def encode(self, x):
+            h1 = F.relu(self.cnn_in(x))
+            h2 = F.relu(self.bn_1(self.cnn_1(h1)))
+            h3 = F.relu(self.bn_2(self.cnn_2(h2)))
+            h4 = F.relu(self.bn_3(self.cnn_3(h3)))
+
+            h_e1 = F.relu(self.e1(h4))
+            mu = self.e2_mu(h_e1)
+            ln_var = self.e2_ln_var(h_e1)
+            return mu, ln_var
+
+        def decode(self, z):
+            h_d1 = F.relu(self.d1(z))
+            h_d2 = F.relu(self.d2(h_d1))
+            h3 = F.relu(self.dbn_3(self.dcnn_3(
+                F.reshape(h_d2, (len(z), self.hidden_size, self.bottom_feat_size, self.bottom_feat_size))
+            )))
+            h2 = F.relu(self.dbn_2(self.dcnn_2(h3)))
+            h1 = F.relu(self.dbn_1(self.dcnn_1(h2)))
+            h_out = self.dcnn_out(h1)
+            # extension
+            ex = self.ex_out(h_d2)
+
+            return h_out, ex
+
+        def save_model(self, pathh, prefix=""):
+            serializers.npz.save_npz(pth.join(pathh, "{}_{}".format(prefix, self.__class__.__name__)), self)
+
+        def load_model(self, pathh, prefix=""):
+            serializers.load_npz(pth.join(pathh, "{}_{}".format(prefix, self.__class__.__name__)), self)
+
+    class ModelBig(Chain):
+
+        def __init__(self, feat_size, hidden_size, latent_size, channels, xp=np, **links):
+            super(CnnVariationalAutoencoder.ModelBig, self).__init__(**links)
             self.feat_size = feat_size
             self.channels = channels
             self.hidden_size = hidden_size
@@ -344,6 +414,8 @@ class CnnVariationalAutoencoder(Classifier):
 
             return h_out, ex
 
+
+
         def save_model(self, pathh, prefix=""):
             serializers.npz.save_npz(pth.join(pathh, "{}_{}".format(prefix, self.__class__.__name__)), self)
 
@@ -363,7 +435,7 @@ class CnnVariationalAutoencoder(Classifier):
         self.learning_rate = learning_rate
         self.mini_batch = mini_batch
         self.optimiser = None
-        self.model = self.Model(feat_size, hidden_size, latent_size, xp=self._xp, channels=channels)
+        self.model = self.ModelSmall(feat_size, hidden_size, latent_size, xp=self._xp, channels=channels)
         self.threshold = threshold
         self.threshold_extended = threshold_extended
         self.latent_samples_generator = self.normal_sampling
