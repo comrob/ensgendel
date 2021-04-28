@@ -539,10 +539,13 @@ class CnnVariationalAutoencoder(Classifier):
                 mu, ln_var = self.model.encode(minisamples)
                 feature, extension = self.model.decode(mu)
                 loss = 1 - F.sigmoid(extension)[:, 0]  # distance from one
-                if not self.bernoulli_img: # FIXME
+                if not self.bernoulli_img:
+                    # loss += F.reshape(F.sum_to(
+                    #     F.bernoulli_nll(minisamples, feature, reduce='no'), shape=(len(minisamples), 1, 1, 1)
+                    # ), (len(minisamples),)) / self.feature_volume
                     loss += F.reshape(F.sum_to(
-                        F.bernoulli_nll(minisamples, feature, reduce='no'), shape=(len(minisamples), 1, 1, 1)
-                    ), (len(minisamples),)) / self.feature_volume
+                        F.squared_difference(minisamples, feature), shape=(len(minisamples), 1, 1, 1)
+                    ), (len(minisamples), )) / self.feature_volume
                 else:
                     loss += F.reshape(F.sum_to(
                         F.squared_difference(minisamples, F.sigmoid(feature)), shape=(len(minisamples), 1, 1, 1)
