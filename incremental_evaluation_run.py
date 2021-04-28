@@ -138,7 +138,7 @@ if __name__ == '__main__':
                 DFH.TOTAL_ACCURACY: IE.evaluate_task_total_accuracy,
                 DFH.LOCAL_ACCURACY: IE.evaluate_task_accuracy,
                 DFH.SUBCLASS_ACCURACY: IE.evaluate_subclass_accuracy,
-            })
+            }, eval_on_testset=EVAL_OVER_TESTING_SET)
             print(evals)
 
     # Stats evaluation
