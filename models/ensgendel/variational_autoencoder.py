@@ -338,7 +338,7 @@ class CnnVariationalAutoencoder(Classifier):
             )))
             h2 = F.relu(self.dbn_2(self.dcnn_2(h3)))
             h1 = F.relu(self.dbn_1(self.dcnn_1(h2)))
-            h_out = F.sigmoid(self.dcnn_out(h1))
+            h_out = self.dcnn_out(h1)
             # extension
             ex = self.ex_out(h_d2)
 
@@ -539,13 +539,13 @@ class CnnVariationalAutoencoder(Classifier):
                 mu, ln_var = self.model.encode(minisamples)
                 feature, extension = self.model.decode(mu)
                 loss = 1 - F.sigmoid(extension)[:, 0]  # distance from one
-                if self.bernoulli_img:
+                if not self.bernoulli_img: # FIXME
                     loss += F.reshape(F.sum_to(
                         F.bernoulli_nll(minisamples, feature, reduce='no'), shape=(len(minisamples), 1, 1, 1)
                     ), (len(minisamples),)) / self.feature_volume
                 else:
                     loss += F.reshape(F.sum_to(
-                        F.squared_difference(minisamples, feature), shape=(len(minisamples), 1, 1, 1)
+                        F.squared_difference(minisamples, F.sigmoid(feature)), shape=(len(minisamples), 1, 1, 1)
                     ), (len(minisamples), )) / self.feature_volume
                 results.append(loss.data)
         return self.untype(self._xp.concatenate(results))

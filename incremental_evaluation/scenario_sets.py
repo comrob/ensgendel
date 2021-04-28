@@ -15,7 +15,7 @@ class FeatureMinimalScenarios(I.ScenarioSet):
         super(FeatureMinimalScenarios, self).__init__()
         fir, sec, thr = digits_tripplet
 
-        scenario_deb = [{0: [fir], 1: [sec]}]
+        scenario_deb = [{0: [fir], 1: [thr]}]
         scenario_add = [{0: [fir]}, {1: [thr]}]
         scenario_exp = [{0: [fir]}, {1: [thr], 0: [sec]}]
         scenario_inc = [{0: [fir], 1: [sec]}, {1: [thr], 0: [sec]}]
