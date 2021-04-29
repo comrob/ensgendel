@@ -14,7 +14,6 @@ SS_GAUSS3 = "gauss_3"
 SS_CIFAR10_012 = "cifar10_012"
 SS_CIFAR10_197 = "cifar10_197"
 SS_CIFAR10_CN5 = "cifar10_cn5"
-SS_CIFAR10_012_IMG = "cifar10_012_img"
 RESULTS = os.path.join("results", "incremental_evaluation_run")
 
 
@@ -39,7 +38,8 @@ parser = argparse.ArgumentParser(description="EnsGenDel algorithm & Incremental 
                                              "hexadecimals is purely coincidental).")
 parser.add_argument('experiment_name', help="Experiment name which will be in file prefix.")
 parser.add_argument('scenario_name', help="Select the scenario. One of the following: " + str([
-    SS_MNIST012, SS_MNIST197, SS_MNIST_CN5, SS_GAUSS3]) + "The scenario name is appended after experiment_name.")
+    SS_MNIST012, SS_MNIST197, SS_MNIST_CN5, SS_GAUSS3, SS_CIFAR10_197, SS_CIFAR10_012, SS_CIFAR10_CN5
+]) + "The scenario name is appended after experiment_name.")
 parser.add_argument('modes',
                     help="Series of numbers activating five modes of this application:"
                          "1:scenario preview; 2:predictor training; 3:debug evaluation; "
@@ -95,14 +95,14 @@ if __name__ == '__main__':
     elif scenario_set_name == SS_GAUSS3:
         scenario_set = SS.Gauss3DMinimalScenarios(train_size=scout_subset)
         visualiser = VH.gauss3d_visualiser
+    elif scenario_set_name == SS_CIFAR10_CN5:
+        scenario_set = SS.FeatureConvergentFiveScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
+                                                              scout_subset=scout_subset)
+        visualiser = VH.image_channel_first_visualiser
     elif scenario_set_name == SS_CIFAR10_012:
-        scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10256"),
-                                                  digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
-        visualiser = VH.gauss3d_visualiser  # TODO: prepare
-    elif scenario_set_name == SS_CIFAR10_012_IMG:
         scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
                                                   digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
-        visualiser = VH.image_channel_first_visualiser  # TODO: prepare
+        visualiser = VH.image_channel_first_visualiser
     else:
         raise NotImplementedError(scenario_set_name)
 
