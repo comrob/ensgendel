@@ -281,6 +281,12 @@ class CnnVariationalAutoencoder(Classifier):
             self.hidden_size = hidden_size
             cnn_depth = 4
             self.bottom_feat_size = feat_size // pow(2, cnn_depth)
+            # relus
+            # self.relu = F.relu
+            self.relu = F.leaky_relu
+            # self.relu = F.relu6
+
+
             with self.init_scope():
                 # encoder
                 self.cnn_in = L.Convolution2D(channels, hidden_size // 8, ksize=4, stride=2, pad=1)
@@ -312,24 +318,24 @@ class CnnVariationalAutoencoder(Classifier):
             return self.decode(self.encode(x)[0])
 
         def encode(self, x):
-            h1 = F.relu(self.cnn_in(x))
-            h2 = F.relu(self.bn_1(self.cnn_1(h1)))
-            h3 = F.relu(self.bn_2(self.cnn_2(h2)))
-            h4 = F.relu(self.bn_3(self.cnn_3(h3)))
+            h1 = self.relu(self.cnn_in(x))
+            h2 = self.relu(self.bn_1(self.cnn_1(h1)))
+            h3 = self.relu(self.bn_2(self.cnn_2(h2)))
+            h4 = self.relu(self.bn_3(self.cnn_3(h3)))
 
-            h_e1 = F.relu(self.e1(h4))
+            h_e1 = self.relu(self.e1(h4))
             mu = self.e2_mu(h_e1)
             ln_var = self.e2_ln_var(h_e1)
             return mu, ln_var
 
         def decode(self, z):
-            h_d1 = F.relu(self.d1(z))
-            h_d2 = F.relu(self.d2(h_d1))
-            h3 = F.relu(self.dbn_3(self.dcnn_3(
+            h_d1 = self.relu(self.d1(z))
+            h_d2 = self.relu(self.d2(h_d1))
+            h3 = self.relu(self.dbn_3(self.dcnn_3(
                 F.reshape(h_d2, (len(z), self.hidden_size, self.bottom_feat_size, self.bottom_feat_size))
             )))
-            h2 = F.relu(self.dbn_2(self.dcnn_2(h3)))
-            h1 = F.relu(self.dbn_1(self.dcnn_1(h2)))
+            h2 = self.relu(self.dbn_2(self.dcnn_2(h3)))
+            h1 = self.relu(self.dbn_1(self.dcnn_1(h2)))
             h_out = self.dcnn_out(h1)
             # extension
             ex = self.ex_out(h_d2)
