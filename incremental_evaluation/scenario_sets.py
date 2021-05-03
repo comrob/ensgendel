@@ -15,18 +15,18 @@ class FeatureMinimalScenarios(I.ScenarioSet):
         super(FeatureMinimalScenarios, self).__init__()
         fir, sec, thr = digits_tripplet
 
-        scenario_deb = [{0: [fir], 1: [thr]}]
+        # scenario_deb = [{0: [fir], 1: [thr]}]
         scenario_add = [{0: [fir]}, {1: [thr]}]
         scenario_exp = [{0: [fir]}, {1: [thr], 0: [sec]}]
         scenario_inc = [{0: [fir], 1: [sec]}, {1: [thr], 0: [sec]}]
         scenario_sep = [{0: [fir, sec]}, {1: [sec, thr]}]
         if not debug_set:
             self._scenarios = [
-                scenario_deb,
-                # scenario_add,
-                # scenario_exp,
-                # scenario_inc,
-                # scenario_sep
+                # scenario_deb,
+                scenario_add,
+                scenario_exp,
+                scenario_inc,
+                scenario_sep
             ]
         else:
             self._scenarios = [

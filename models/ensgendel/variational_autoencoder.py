@@ -282,8 +282,8 @@ class CnnVariationalAutoencoder(Classifier):
             cnn_depth = 4
             self.bottom_feat_size = feat_size // pow(2, cnn_depth)
             # relus
-            # self.relu = F.relu
-            self.relu = F.leaky_relu
+            self.relu = F.relu
+            # self.relu = F.leaky_relu
             # self.relu = F.relu6
 
 
@@ -520,7 +520,8 @@ class CnnVariationalAutoencoder(Classifier):
         reg_loss = F.sum(_labels * F.sum(gaussian_kl_divergence(mu, F.clip(ln_var, -50., 50.), reduce='no'), axis=1))
         print("                                                                                 "
               " ext: {}, pos: {}, reg:{}".format(extension_error.data, positive_feature_error.data, reg_loss.data))
-        assert not np.isnan(reg_loss.data), "There is a nan"
+        assert not np.isnan(reg_loss.data), "There is a nan in regularization error"
+        assert not np.isnan(rec_loss.data), "There is a nan in reconstruction error"
         # Regularization cost for negative samples (label = 0) penalize the closeness of the unit gauss.
 
         loss = self.alpha_1 * rec_loss + self.alpha_2 * reg_loss

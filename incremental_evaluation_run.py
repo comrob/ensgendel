@@ -103,6 +103,10 @@ if __name__ == '__main__':
         scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
                                                   digits_tripplet=(0, 1, 2), debug_set=False, scout_subset=scout_subset)
         visualiser = VH.image_channel_first_visualiser
+    elif scenario_set_name == SS_CIFAR10_197:
+        scenario_set = SS.FeatureMinimalScenarios(os.path.join(RESULTS, "dataset_cifar10_img_256"),
+                                                  digits_tripplet=(1, 9, 7), debug_set=False, scout_subset=scout_subset)
+        visualiser = VH.image_channel_first_visualiser
     else:
         raise NotImplementedError(scenario_set_name)
 
